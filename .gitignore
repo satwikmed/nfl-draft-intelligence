@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data (regenerate via: python -m src.ingestion.run_all)
+data/raw/
+*.db
+
+# Environment
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (React dashboard)
+node_modules/
+dashboard/build/
+dashboard/dist/
+
+# Model artifacts
+models/*.pkl
+models/*.joblib
+
+# Misc
+*.log
+.mypy_cache/
+.pytest_cache/
