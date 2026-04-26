@@ -213,7 +213,7 @@ export default function PlayerModal({ player, features, comps, nfl, onClose }: P
                           angleLines: { color: 'rgba(255,255,255,0.2)' },
                           pointLabels: { 
                             color: 'rgba(255,255,255,0.6)', 
-                            font: { size: 12, weight: '900', family: 'Inter' } 
+                            font: { size: 12, weight: 'bold', family: 'Inter' } 
                           },
                           ticks: { display: false }
                         }

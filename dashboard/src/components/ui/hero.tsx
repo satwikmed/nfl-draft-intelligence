@@ -83,14 +83,11 @@ export default function ShaderShowcase() {
         className="absolute inset-0 w-full h-full"
         colors={["#000000", "#06b6d4", "#0891b2", "#164e63", "#f97316"]}
         speed={0.3}
-        backgroundColor="#000000"
       />
       <MeshGradient
         className="absolute inset-0 w-full h-full opacity-60"
         colors={["#000000", "#ffffff", "#06b6d4", "#f97316"]}
         speed={0.2}
-        wireframe="true"
-        backgroundColor="transparent"
       />
 
       <header className="relative z-20 flex items-center justify-between p-6">
@@ -279,7 +276,6 @@ export default function ShaderShowcase() {
             thickness={0.1}
             softness={0.2}
             intensity={5}
-            spotsPerColor={5}
             spotSize={0.1}
             pulse={0.1}
             smoke={0.5}
