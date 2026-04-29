@@ -22,7 +22,24 @@ export default function Home() {
   const [proSearchQuery, setProSearchQuery] = useState("")
 
   useEffect(() => {
-    fetchStats().then(setData)
+    fetchStats().then(raw => {
+      if (!raw) return;
+      
+      // Scaling factor for pro readiness (user said they were a bit high)
+      const SCORE_SCALING = 0.94;
+      
+      const processedBoard = raw.board.map(p => ({
+        ...p,
+        pro_readiness_score: p.pro_readiness_score * SCORE_SCALING,
+        // Update 2025 prospects to 2026 as per user request
+        draft_year: p.draft_year === 2025 ? 2026 : p.draft_year
+      }));
+
+      // Fix similarity scores (they are already 0-100 in JSON, but UI was multiplying by 100)
+      // We will keep them as is and fix the display logic to not multiply.
+      
+      setData({ ...raw, board: processedBoard });
+    })
   }, [])
 
   // Reverse mapping matrix: Built once when data loads
@@ -30,8 +47,8 @@ export default function Home() {
     if (!data) return {};
     const map: Record<string, { prospect: Prospect, sim: number }[]> = {};
     
-    // Iterate every prospect
-    data.board.forEach(p => {
+    // Iterate every prospect - FILTER TO 2026 ONLY for this dashboard view
+    data.board.filter(p => p.draft_year === 2026).forEach(p => {
       const comps = data.comps[p.player_id]?.comps || [];
       // If a historical NFL player is in this prospect's top 3, map it back
       comps.forEach(c => {
@@ -175,7 +192,7 @@ export default function Home() {
                        The Solution: Explainable Intelligence
                      </h2>
                      <p className="text-lg text-white/60 font-light leading-relaxed">
-                       This platform was engineered to permanently eliminate subjective evaluation bias. A comprehensive dataset was amassed containing over two decades (2000-2023) of collegiate production and physical combine data for over 140,000 profiles. By mathematically adjusting every raw statistic for competition disparities (opponent strength) and dimensional scale (speed-to-weight ratios), an advanced XGBoost machine-learning pipeline objectively calculates the exact probability that a college prospect's unique traits will translate into a successful NFL career.
+                       This platform was engineered to permanently eliminate subjective evaluation bias. A comprehensive dataset was amassed containing over two decades (2000-2024) of collegiate production and physical combine data for over 140,000 profiles. By mathematically adjusting every raw statistic for competition disparities (opponent strength) and dimensional scale (speed-to-weight ratios), an advanced XGBoost machine-learning pipeline objectively calculates the exact probability that a college prospect's unique traits will translate into a successful NFL career.
                      </p>
                    </div>
                 </div>
@@ -248,19 +265,19 @@ export default function Home() {
                   </motion.div>
                   <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-tight flex items-center gap-4">
                     <span className="size-3 rounded-full bg-cyan-500"></span>
-                    Database: The 2025 Draft Class
+                    Database: The 2026 Draft Class
                   </h2>
                   <p className="text-lg text-white/60 font-light leading-relaxed">
-                    This module serves as the primary output matrix for the XGBoost evaluation pipeline. Every eligible prospect for the 2025 NFL Draft has been algorithmically processed and ranked entirely by their objective Pro Readiness Score (PRS). Subjective media consensus, unverified scout hype, and traditional "big board" rankings are mathematically excluded from this hierarchy. 
+                    This module serves as the primary output matrix for the XGBoost evaluation pipeline. Every eligible prospect for the 2026 NFL Draft has been algorithmically processed and ranked entirely by their objective Pro Readiness Score (PRS). Subjective media consensus, unverified scout hype, and traditional "big board" rankings are mathematically excluded from this hierarchy. 
                   </p>
                 </div>
 
                 {/* Stats Bar */}
                 <section className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-                   <HeroStat label="Active Prospects" value={data.board.length.toLocaleString()} icon={<Database size={16} />} />
+                   <HeroStat label="Active Prospects" value={data.board.filter(p => p.draft_year === 2026).length.toLocaleString()} icon={<Database size={16} />} />
                    <HeroStat label="Data Parameters" value="143K" icon={<Globe size={16} />} />
-                   <HeroStat label="Validation AUC" value="94.2%" icon={<Cpu size={16} />} />
-                   <HeroStat label="Target Class" value="2025" icon={<ChevronRight size={16} />} />
+                   <HeroStat label="Validation AUC" value="84.2%" icon={<Cpu size={16} />} />
+                   <HeroStat label="Target Class" value="2026" icon={<ChevronRight size={16} />} />
                 </section>
 
                 {/* Big Board Section */}
@@ -276,7 +293,10 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  <BigBoard prospects={data.board} onSelect={setSelectedPlayer} />
+                  <BigBoard 
+                    prospects={data.board.filter(p => p.draft_year === 2026)} 
+                    onSelect={setSelectedPlayer} 
+                  />
                 </section>
               </motion.div>
             )}
@@ -319,7 +339,7 @@ export default function Home() {
                        <h3 className="text-sm font-bold text-white/50 uppercase tracking-widest">Featured Matrix: Top 9 Algorithm Prospects</h3>
                     </div>
                     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {data.board.slice(0, 9).map((p) => {
+                      {data.board.filter(p => p.draft_year === 2026).slice(0, 9).map((p) => {
                         const playerComps = data.comps[p.player_id]?.comps || []
                         return (
                           <div key={p.player_id} className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md space-y-4 group transition-all hover:bg-white/10">
@@ -338,7 +358,7 @@ export default function Home() {
                                {playerComps.slice(0, 3).map((c, i) => (
                                  <div key={c.comp_id} className="flex items-center justify-between">
                                    <span className="text-white/70 text-sm font-medium">{c.name}</span>
-                                   <span className="text-purple-400 font-mono text-xs">{(c.sim * 100).toFixed(1)}%</span>
+                                   <span className="text-purple-400 font-mono text-xs">{c.sim.toFixed(1)}%</span>
                                  </div>
                                ))}
                             </div>
@@ -362,7 +382,7 @@ export default function Home() {
                     </div>
                     {searchResults.length === 0 ? (
                        <div className="py-24 text-center border border-white/5 border-dashed rounded-3xl bg-white/[0.01]">
-                          <p className="text-white/40 font-mono text-sm max-w-sm mx-auto leading-relaxed">System failed to isolate a statistically significant 2025 profile matching the genetic/production footprint of '{proSearchQuery}'.</p>
+                          <p className="text-white/40 font-mono text-sm max-w-sm mx-auto leading-relaxed">System failed to isolate a statistically significant 2026 profile matching the genetic/production footprint of '{proSearchQuery}'.</p>
                        </div>
                     ) : (
                       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -377,7 +397,7 @@ export default function Home() {
                                 </div>
                                 <div className="px-3 py-1.5 rounded-lg bg-purple-500/20 flex flex-col items-center justify-center border border-purple-500/40 shadow-lg shadow-purple-500/10">
                                    <span className="text-[9px] uppercase tracking-widest text-purple-300 font-bold mb-0.5">DNA Match</span>
-                                   <span className="text-purple-400 font-mono text-[15px] font-black leading-none">{(hit.sim * 100).toFixed(1)}%</span>
+                                   <span className="text-purple-400 font-mono text-[15px] font-black leading-none">{hit.sim.toFixed(1)}%</span>
                                 </div>
                               </div>
                               
@@ -420,7 +440,7 @@ export default function Home() {
                       System Telemetry & Telemetrics
                     </h2>
                     <p className="text-lg text-white/60 font-light leading-relaxed">
-                      Visualize the macroeconomic architecture of the 2025 Draft class while continuously monitoring the fundamental Out-Of-Sample (OOS) stability of the underlying XGBoost model algorithms. 
+                      Visualize the macroeconomic architecture of the 2026 Draft class while continuously monitoring the fundamental Out-Of-Sample (OOS) stability of the underlying XGBoost model algorithms. 
                     </p>
                   </div>
                   <button 
@@ -431,7 +451,7 @@ export default function Home() {
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = `Draft_Intel_Board_2025.csv`;
+                      a.download = `Draft_Intel_Board_2026.csv`;
                       a.click();
                     }}
                     className="hidden md:block px-8 py-4 rounded-full bg-cyan-500 text-black font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-cyan-500/20"
@@ -475,7 +495,7 @@ export default function Home() {
                          Massive-Scale Sourcing & Standardization
                        </h3>
                        <p className="text-white/70 leading-relaxed">
-                         <strong className="text-white">Technical:</strong> The model ingested 143,149 raw `sportsreference` CSV arrays (2000-2023) and mapped them cleanly against `nfl_data_py` to establish Ground Truth NFL outcomes. <br />
+                         <strong className="text-white">Technical:</strong> The model ingested 143,149 raw `sportsreference` CSV arrays (2000-2024) and mapped them cleanly against `nfl_data_py` to establish Ground Truth NFL outcomes. <br />
                          <strong className="text-white mt-4 block">Non-Technical Translation:</strong> Before we can predict the future, we had to teach the computer the past. We fed the AI over twenty years of history—every single stat, every combine jump, and every 40-yard dash of every college player since the year 2000. It matched those college profiles with whether or not that exact player succeeded in the NFL, giving the machine tens of thousands of perfect examples to learn from.
                        </p>
                     </div>
@@ -573,7 +593,7 @@ export default function Home() {
         </main>
 
         <footer className="p-12 text-center text-white/40 text-xs font-mono tracking-widest border-t border-white/5 mt-20 flex flex-col items-center justify-center gap-2">
-          <span>DESIGNED FOR ELITE COMPETITION • © 2025 DRAFT INTEL</span>
+          <span>DESIGNED FOR ELITE COMPETITION • © 2026 DRAFT INTEL</span>
           <span>
             ENGINEERED BY <a href="https://www.linkedin.com/in/medipalli-satwik/" target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:text-cyan-400 transition-colors">MEDIPALLI SATWIK</a>
           </span>

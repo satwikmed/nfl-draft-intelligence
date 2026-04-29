@@ -137,7 +137,7 @@ export default function PlayerModal({ player, features, comps, nfl, onClose }: P
                 <div className="flex items-center gap-2 text-white/60 font-light text-xl">
                    <span>{player.school}</span>
                    <span className="size-1 rounded-full bg-white/30" />
-                   <span className="text-cyan-300 font-medium">Class of {player.draft_year || '2025'}</span>
+                   <span className="text-cyan-300 font-medium">Class of {player.draft_year || '2026'}</span>
                 </div>
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function PlayerModal({ player, features, comps, nfl, onClose }: P
             {/* Premium Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <DeepStat label="Pro Readiness" value={player.pro_readiness_score.toFixed(1)} icon={<TrendingUp size={16} />} color="text-white" highlight="bg-cyan-500/20" def="Probability of starter-caliber performance within 3 years." />
-              <DeepStat label="Draft Projection" value={player.draft_pick || "Early 1st"} icon={<BarChart3 size={16} />} color="text-white" highlight="bg-white/10" def="Estimated selection range based on 2025 big boards." />
+              <DeepStat label="Draft Projection" value={player.draft_pick || "Early 1st"} icon={<BarChart3 size={16} />} color="text-white" highlight="bg-white/10" def="Estimated selection range based on 2026 big boards." />
               <DeepStat label="Career Runway" value={`${player.predicted_career_length?.toFixed(1) || '4.2'}Y`} icon={<Zap size={16} />} color="text-white" highlight="bg-orange-500/20" def="Projected active longevity factoring positional hazard rates." />
               <DeepStat label="Similarity" value={`${playerComps.length} Matches`} icon={<Users size={16} />} color="text-white" highlight="bg-white/10" def="Total historic NFL clones mapped via Cosine Similarity." />
             </div>
@@ -192,7 +192,7 @@ export default function PlayerModal({ player, features, comps, nfl, onClose }: P
                         <div className="text-right">
                            <div className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-1">Match Accuracy</div>
                            <span className="font-black text-2xl text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
-                             {(c.sim * 100).toFixed(1)}%
+                             {Math.min(c.sim, 100).toFixed(1)}%
                            </span>
                         </div>
                       </div>
